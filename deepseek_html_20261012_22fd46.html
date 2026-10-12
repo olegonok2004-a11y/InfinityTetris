@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>∞ Infinity Tetris</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c1:#5ef2ff;--c2:#9b6bff;--c3:#ffd36b;--bg:#05030d;
+  --pn:rgba(22,15,52,.9);--ln:rgba(155,107,255,.4);
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:#e9e6ff;
+  font-family:'Orbitron',system-ui,'Segoe UI',sans-serif}
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+#game{position:relative;z-index:1;height:100%;display:flex;justify-content:center;align-items:center;
+  padding:calc(10px + var(--safe-t)) calc(10px + var(--safe-r)) calc(10px + var(--safe-b)) calc(10px + var(--safe-l))}
+#main{position:relative;display:flex;flex-direction:column;gap:10px;width:var(--mw,60vmin)}
+#side{position:absolute;right:100%;top:0;margin-right:16px;width:clamp(150px,16vw,220px);
+  display:flex;flex-direction:column;gap:10px}
+#sideR{position:absolute;left:100%;top:0;margin-left:16px;width:clamp(150px,16vw,220px);
+  display:none;flex-direction:column;gap:10px}
+.stats{display:grid;gap:8px}
+.nx{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px}
+#bw{display:flex;justify-content:center;flex:none}
+#pu{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ctrl{display:none;grid-template-columns:repeat(3,1fr);gap:10px}
+.box,.nx,.pb,.cb{background:var(--pn);border:1px solid var(--ln);border-radius:16px}
+.box{padding:10px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.box small,.nx small{display:block;font-size:11px;letter-spacing:.2em;color:#a89fe0;text-align:center}
+.box b{font-size:clamp(20px,2.4vw,28px);color:var(--c1);text-shadow:0 0 12px var(--c1);
+  line-height:1.1;text-align:center}
+.box.coin b{color:var(--c3);text-shadow:0 0 12px var(--c3)}
+canvas#c{border-radius:12px;border:1px solid var(--c2);box-shadow:0 0 30px rgba(155,107,255,.45);background:#080516}
+.pb{color:#e9e6ff;font:inherit;padding:10px 4px;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:2px;transition:border-color .15s,transform .1s}
+.pb .i{font-size:30px;line-height:1.1;color:var(--c1);text-shadow:0 0 10px var(--c1)}
+.pb b{font-size:11px}.pb em{font-style:normal;font-size:14px;color:var(--c3)}
+.pb:not(:disabled):hover{border-color:var(--c1);box-shadow:0 0 16px rgba(94,242,255,.4)}
+.pb:not(:disabled):active{transform:scale(.96)}
+.pb:disabled{opacity:.35;cursor:not-allowed}
+.pb.on{border-color:var(--c3);box-shadow:0 0 18px rgba(255,211,107,.6)}
+.cb{height:64px;color:var(--c1);font:700 26px 'Orbitron',sans-serif;display:flex;align-items:center;
+  justify-content:center;transition:transform .08s,background .12s}
+.cb:active{background:rgba(94,242,255,.3);transform:scale(.95)}
+
+.screen{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:16px;text-align:center;
+  padding:calc(20px + var(--safe-t)) 20px calc(20px + var(--safe-b));
+  background:rgba(5,3,13,.86)}
+.screen.show{display:flex}
+.inf{font-size:clamp(90px,24vmin,200px);line-height:.9;font-weight:900;
+  background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c1));background-size:200%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:fl 6s linear infinite}
+@keyframes fl{to{background-position:200%}}
+h1{margin:0;font-size:clamp(28px,6vmin,52px);letter-spacing:.25em;font-weight:900;
+  text-shadow:0 0 20px var(--c2)}
+h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1)}
+.sub{color:#a89fe0;font-size:12px;letter-spacing:.3em}
+.btn{min-width:250px;padding:16px 28px;font:700 16px 'Orbitron',sans-serif;letter-spacing:.2em;
+  color:#fff;cursor:pointer;border-radius:40px;border:1px solid var(--c1);
+  background:linear-gradient(90deg,rgba(94,242,255,.2),rgba(155,107,255,.3));
+  box-shadow:0 0 20px rgba(94,242,255,.35);transition:transform .15s}
+.btn:hover{transform:scale(1.04)}.btn:active{transform:scale(.97)}
+.btn.alt{border-color:var(--c2);box-shadow:0 0 14px rgba(155,107,255,.35);background:transparent}
+.meta{color:var(--c3);font-size:13px;letter-spacing:.1em}
+.how{max-width:460px;font-size:14px;line-height:1.7;color:#cfc9f5;font-family:system-ui,sans-serif}
+.how b{color:var(--c1)}
+
+/* ─── ЗАГЛУШКА ДЛЯ ТЕЛЕФОНА В ЛАНДШАФТЕ ─── */
+#rotate{
+  position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;
+  justify-content:center;gap:18px;text-align:center;padding:24px;
+  background:rgba(5,3,13,.96);color:#e9e6ff}
+#rotate .ic{font-size:64px;animation:rot 2s ease-in-out infinite}
+@keyframes rot{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
+#rotate b{font-size:18px;letter-spacing:.15em;color:var(--c1)}
+
+/* ─── ПЛАНШЕТ: горизонталь = ПК + кнопки, вертикаль = телефон ─── */
+@media (hover:none) and (pointer:coarse){
+  .ctrl{display:grid}
+}
+
+/* Телефонные устройства */
+@media (hover:none) and (pointer:coarse) and (max-width:820px){
+  #game{padding:calc(8px + var(--safe-t)) calc(8px + var(--safe-r)) calc(8px + var(--safe-b)) calc(8px + var(--safe-l))}
+  #main{gap:8px;width:100%;max-width:520px}
+  #side{position:static;margin:0;width:100%;flex-direction:row;align-items:stretch;gap:6px}
+  .stats{flex:1;grid-template-columns:repeat(3,1fr);gap:6px}
+  .stats .box:nth-child(4){display:none}
+  .nx{flex-direction:row;padding:6px 10px;gap:6px}
+  .nx small{display:none}
+  .nx canvas{width:38px !important;height:38px !important}
+  .box{padding:6px 8px;border-radius:12px}
+  .box small{font-size:9px;letter-spacing:.08em}
+  .box b{font-size:clamp(16px,4.6vw,22px)}
+  #pu{gap:6px}
+  .pb{padding:12px 2px;border-radius:14px;min-height:76px}
+  .pb .i{font-size:26px}
+  .pb b{font-size:10px}
+  .pb em{font-size:12px}
+  .ctrl{gap:8px}
+  .cb{height:56px;border-radius:14px;font-size:24px}
+}
+
+/* Телефон в ландшафте: заглушка */
+@media (hover:none) and (pointer:coarse) and (max-width:820px) and (orientation:landscape){
+  #game,#side,#sideR,.screen{display:none !important}
+  #rotate{display:flex}
+}
+
+/* ─── ПЛАНШЕТ: горизонталь — ПК-стиль + правая колонка кнопок ─── */
+@media (hover:none) and (pointer:coarse) and (min-width:821px) and (orientation:landscape){
+  #side{position:absolute;right:100%;margin-right:16px;width:clamp(140px,14vw,190px);
+    flex-direction:column}
+  #sideR{display:flex;position:absolute;left:100%;margin-left:16px;
+    width:clamp(140px,14vw,190px)}
+  #sideR .ctrl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  #sideR .cb{height:clamp(48px,6.5vw,64px);font-size:clamp(20px,2.6vw,26px)}
+  #main{width:var(--mw,60vmin)}
+  #pu{grid-template-columns:repeat(4,1fr)}
+  #main > .ctrl{display:none !important}
+}
+
+/* ─── ПЛАНШЕТ: вертикаль — телефонный режим ─── */
+@media (hover:none) and (pointer:coarse) and (min-width:821px) and (orientation:portrait){
+  #side{position:static;margin:0;width:100%;flex-direction:row;align-items:stretch;gap:8px}
+  .stats{flex:1;grid-template-columns:repeat(4,1fr);gap:8px}
+  .nx{flex-direction:row;padding:6px 12px;gap:8px}
+  .nx small{display:none}
+  #pu{gap:10px}
+  .pb{padding:14px 4px;min-height:88px}
+  .cb{height:64px}
+}
+
+/* Ландшафт с низкой высотой */
+@media (orientation:landscape) and (max-height:560px){
+  #game{padding:6px}
+  #side{gap:6px}.nx{display:none}
+  .stats{grid-template-columns:1fr 1fr;gap:6px}
+  .box{padding:5px 8px}.box small{font-size:8px}.box b{font-size:17px}
+  .pb{padding:5px 2px}.pb .i{font-size:20px}.pb b{font-size:9px}.pb em{font-size:11px}
+  .cb{height:44px}
+  .screen{gap:8px}.inf{font-size:70px}h1{font-size:22px}.btn{padding:10px 20px;min-width:210px}
+}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="game">
+ <div id="main">
+  <aside id="side">
+   <div class="stats">
+    <div class="box"><small>ОЧКИ</small><b id="sc">0</b></div>
+    <div class="box coin"><small>МОНЕТЫ ◈</small><b id="co">0</b></div>
+    <div class="box"><small>РЕКОРД</small><b id="be">0</b></div>
+    <div class="box"><small>ЛИНИИ</small><b id="li">0</b></div>
+   </div>
+   <div class="nx"><small>ДАЛЕЕ</small><canvas id="nc"></canvas></div>
+  </aside>
+  <div id="bw"><canvas id="c"></canvas></div>
+  <div id="pu"></div>
+  <!-- Кнопки для телефона / планшета-вертикали -->
+  <div class="ctrl" id="ctrlMain">
+   <button class="cb" data-a="rot">⟳</button>
+   <button class="cb" data-a="hard">⤓</button>
+   <button class="cb" data-a="pause">❚❚</button>
+   <button class="cb" data-a="left" data-r="1">◀</button>
+   <button class="cb" data-a="down" data-r="1">▼</button>
+   <button class="cb" data-a="right" data-r="1">▶</button>
+  </div>
+ </div>
+ <!-- Правая колонка для планшета-горизонтали -->
+ <aside id="sideR">
+   <div class="ctrl">
+     <button class="cb" data-a="rot">⟳</button>
+     <button class="cb" data-a="hard">⤓</button>
+     <button class="cb" data-a="pause">❚❚</button>
+     <button class="cb" data-a="left" data-r="1">◀</button>
+     <button class="cb" data-a="down" data-r="1">▼</button>
+     <button class="cb" data-a="right" data-r="1">▶</button>
+   </div>
+ </aside>
+</div>
+
+<!-- Заглушка «поверните телефон» -->
+<div id="rotate">
+  <div class="ic">📱</div>
+  <b>ПОВЕРНИТЕ УСТРОЙСТВО</b>
+  <div class="sub">Infinity Tetris играется вертикально</div>
+</div>
+
+<div class="screen show" id="menu">
+ <div class="inf">∞</div>
+ <h1>INFINITY</h1><div class="sub">TETRIS · БЕСКОНЕЧНЫЙ УРОВЕНЬ</div>
+ <button class="btn" id="bPlay">ИГРАТЬ</button>
+ <button class="btn alt" id="bHow">КАК ИГРАТЬ</button>
+ <div class="meta" id="mMeta"></div>
+</div>
+<div class="screen" id="how">
+ <h2>КАК ИГРАТЬ</h2>
+ <div class="how">
+  Укладывай фигуры и собирай линии — очков столько, сколько сможешь набрать.<br>
+  <b>100 очков = 1 монета ◈.</b> Монеты сохраняются и тратятся на усиления рядом с полем.<br><br>
+  <b>ПК / планшет (гориз.):</b> ← → движение, ↑ / X поворот, ↓ ускорение, Пробел — сброс, P — пауза, 1–4 — усиления.<br>
+  <b>Телефон / планшет (верт.):</b> экранные кнопки под полем.
+ </div>
+ <button class="btn" id="bBack">НАЗАД</button>
+</div>
+<div class="screen" id="pause">
+ <h2>ПАУЗА</h2>
+ <button class="btn" id="bRes">ПРОДОЛЖИТЬ</button>
+ <button class="btn alt" id="bMenu1">В МЕНЮ</button>
+</div>
+<div class="screen" id="over">
+ <div class="inf" style="font-size:90px">∞</div>
+ <h2>ПОЛЕ ЗАПОЛНЕНО</h2>
+ <div class="meta" id="oMeta"></div>
+ <button class="btn" id="bAgain">ЕЩЁ РАЗ</button>
+ <button class="btn alt" id="bMenu2">В МЕНЮ</button>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),W=10,H=20;
+const SH=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]];
+const COL=['#5ef2ff','#ffd36b','#b57bff','#6bffb0','#ff6b9d','#6b8bff','#ff9d5e'];
+let S={coins:0,best:0,acc:0};
+try{Object.assign(S,JSON.parse(localStorage.getItem('infTetris')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('infTetris',JSON.stringify(S))}catch(e){}};
+const c=$('#c'),x=c.getContext('2d'),nc=$('#nc'),nx=nc.getContext('2d');
+let grid,cur,nxt,bag,score=0,lines=0,runCoins,st='menu',acc=0,fz=0,mu=0,cs=24,DPR=1,spr=[],sprN=[],ns=20;
+
+/* Усиления */
+const PU=[
+ {i:'❄',n:'Заморозка',c:3,t:'fz',f(){fz=15}},
+ {i:'✂',n:'Разрез',c:2,f(){grid.pop();grid.unshift(Array(W).fill(0))}},
+ {i:'∞',n:'Идеал',c:1,f(){nxt=0}},
+ {i:'×2',n:'Множитель',c:4,t:'mu',f(){mu=20}}
+];
+const pus=$('#pu');
+PU.forEach((p,k)=>{const b=document.createElement('button');b.className='pb';
+ b.innerHTML=`<span class="i">${p.i}</span><b>${p.n}</b><em>${p.c} ◈</em>`;
+ b.onclick=()=>buy(k);p.el=b;p.em=b.querySelector('em');p.txt='';p.dis=null;p.on=false;pus.appendChild(b)});
+function buy(k){const p=PU[k];if(st!=='play'||S.coins<p.c)return;S.coins-=p.c;p.f();save()}
+
+/* Логика */
+const rotM=m=>m[0].map((_,i)=>m.map(r=>r[i]).reverse());
+function pull(){if(!bag.length){bag=[0,1,2,3,4,5,6];for(let i=6;i>0;i--){const j=Math.random()*(i+1)|0;[bag[i],bag[j]]=[bag[j],bag[i]]}}return bag.pop()}
+function hit(m,px,py){for(let r=0;r<m.length;r++)for(let q=0;q<m[r].length;q++)if(m[r][q]){const X=px+q,Y=py+r;if(X<0||X>=W||Y>=H||(Y>=0&&grid[Y][X]))return true}return false}
+function spawn(){const i=nxt;nxt=pull();const m=SH[i].map(r=>r.slice());cur={m,c:i+1,x:(W-m[0].length)/2|0,y:0,softDrop:0};if(hit(cur.m,cur.x,cur.y))over()}
+function addScore(n){n*=mu>0?2:1;score+=n;S.acc+=n;while(S.acc>=100){S.acc-=100;S.coins++;runCoins++}if(score>S.best)S.best=score}
+
+/* ОЧКИ: за собранные линии и за каждую клетку, пройденную вниз в момент фиксации.
+   За само нажатие «вниз» очки больше НЕ начисляются. */
+function lock(){
+ cur.m.forEach((r,j)=>r.forEach((v,q)=>{if(v&&cur.y+j>=0)grid[cur.y+j][cur.x+q]=cur.c}));
+ let n=0;grid=grid.filter(r=>{if(r.every(v=>v)){n++;return false}return true});
+ while(grid.length<H)grid.unshift(Array(W).fill(0));
+ // Бонус за мягкий сброс — начисляется один раз в момент фиксации
+ if(cur.softDrop>0)addScore(cur.softDrop);
+ if(n){lines+=n;addScore([0,100,300,500,800][n])}
+ save();acc=0;spawn()}
+
+const act={
+ left(){if(!hit(cur.m,cur.x-1,cur.y))cur.x--},
+ right(){if(!hit(cur.m,cur.x+1,cur.y))cur.x++},
+ // Ускорение: только сдвигаем вниз, очки копим в cur.softDrop, но НЕ начисляем
+ down(){if(!hit(cur.m,cur.x,cur.y+1)){cur.y++;cur.softDrop++;acc=0}},
+ rot(){const m=rotM(cur.m);for(const d of[0,-1,1,-2,2])if(!hit(m,cur.x+d,cur.y)){cur.m=m;cur.x+=d;return}},
+ // Жёсткий сброс: считаем пройденное расстояние и начисляем в момент lock
+ hard(){let d=0;while(!hit(cur.m,cur.x,cur.y+1)){cur.y++;d++}cur.softDrop+=d;lock()},
+ pause(){if(st==='play'){st='pause';show('pause')}else if(st==='pause'){st='play';show()}}
+};
+function doAct(a){if(st==='play'&&a!=='pause')act[a]();else if(a==='pause')act.pause()}
+function start(){grid=Array.from({length:H},()=>Array(W).fill(0));bag=[];score=0;lines=0;runCoins=0;fz=mu=0;acc=0;nxt=pull();st='play';spawn();show();fit()}
+function over(){st='over';save();$('#oMeta').innerHTML=`Очки: ${score}<br>Заработано монет: ${runCoins} ◈`;show('over')}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id));
+ $('#mMeta').textContent=`Рекорд: ${S.best}  ·  Монеты: ${S.coins} ◈  ·  100 очков = 1 ◈`}
+
+/* Спрайты клеток */
+function mkSprites(s){const p=Math.ceil(s*.4),z=s+p*2,out=[];
+ COL.forEach(col=>{const o=document.createElement('canvas');o.width=o.height=Math.ceil(z*DPR);const g=o.getContext('2d');g.scale(DPR,DPR);
+  g.shadowColor=col;g.shadowBlur=s*.5;g.fillStyle=col;g.beginPath();g.roundRect(p+1,p+1,s-2,s-2,s*.22);g.fill();
+  g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.28)';g.beginPath();g.roundRect(p+s*.2,p+s*.2,s*.6,s*.25,s*.1);g.fill();out.push(o)});
+ out.p=p;out.z=z;return out}
+function put(g,sp,px,py,s,ci,a){g.globalAlpha=a;g.drawImage(sp[ci-1],px*s-sp.p,py*s-sp.p,sp.z,sp.z)}
+
+/* Отрисовка */
+let hud={};
+function setT(id,v){if(hud[id]!==v){hud[id]=v;$('#'+id).textContent=v}}
+function draw(){
+ x.setTransform(DPR,0,0,DPR,0,0);x.clearRect(0,0,W*cs,H*cs);
+ x.strokeStyle='rgba(155,107,255,.12)';x.lineWidth=1;x.beginPath();
+ for(let i=1;i<W;i++){x.moveTo(i*cs,0);x.lineTo(i*cs,H*cs)}for(let j=1;j<H;j++){x.moveTo(0,j*cs);x.lineTo(W*cs,j*cs)}x.stroke();
+ if(grid){for(let j=0;j<H;j++)for(let i=0;i<W;i++){const v=grid[j][i];if(v)put(x,spr,i,j,cs,v,1)}
+  if(cur&&st!=='over'){let gy=cur.y;while(!hit(cur.m,cur.x,gy+1))gy++;
+   for(let j=0;j<cur.m.length;j++)for(let q=0;q<cur.m[j].length;q++)if(cur.m[j][q]){put(x,spr,cur.x+q,gy+j,cs,cur.c,.2);put(x,spr,cur.x+q,cur.y+j,cs,cur.c,1)}}}
+ x.globalAlpha=1;
+ if(fz>0){x.fillStyle='rgba(94,242,255,.07)';x.fillRect(0,0,W*cs,H*cs)}
+ if(hud.nx!==nxt){hud.nx=nxt;nx.setTransform(DPR,0,0,DPR,0,0);nx.clearRect(0,0,nc.width,nc.height);
+  if(nxt!==undefined){const m=SH[nxt];for(let j=0;j<m.length;j++)for(let q=0;q<m[j].length;q++)if(m[j][q])put(nx,sprN,q+(4-m[0].length)/2,j+(4-m.length)/2,ns,nxt+1,1);nx.globalAlpha=1}}
+ setT('sc',score);setT('co',S.coins);setT('be',S.best);setT('li',lines);
+ PU.forEach(p=>{const d=st!=='play'||S.coins<p.c;if(p.dis!==d){p.dis=d;p.el.disabled=d}
+  const on=(p.t==='fz'&&fz>0)||(p.t==='mu'&&mu>0);if(p.on!==on){p.on=on;p.el.classList.toggle('on',on)}
+  const t=on?Math.ceil(p.t==='fz'?fz:mu)+' с':p.c+' ◈';if(p.txt!==t){p.txt=t;p.em.textContent=t}})}
+
+function fit(){
+ DPR=Math.min(devicePixelRatio||1,2);
+ const g=$('#game'),port=matchMedia('(orientation:portrait)').matches;
+ const isTabletLand=matchMedia('(hover:none) and (pointer:coarse) and (min-width:821px) and (orientation:landscape)').matches;
+ const isPhoneLand=matchMedia('(hover:none) and (pointer:coarse) and (max-width:820px) and (orientation:landscape)').matches;
+ if(isPhoneLand)return; // на телефоне в ландшафте игра скрыта
+
+ const ctMain=$('#ctrlMain'), sd=$('#side'), sdR=$('#sideR');
+ let hh=g.clientHeight-20-$('#pu').offsetHeight-16;
+ if(port)hh-=sd.offsetHeight+10;
+ if(ctMain.offsetHeight&&getComputedStyle(ctMain).display!=='none'&&!isTabletLand)hh-=ctMain.offsetHeight+10;
+
+ let aw;
+ if(port){
+   aw=innerWidth-20;
+ } else {
+   const leftW=sd.offsetWidth||0;
+   const rightW=(sdR&&getComputedStyle(sdR).display!=='none')?(sdR.offsetWidth+16):0;
+   aw=innerWidth-24-leftW-32-rightW;
+ }
+ cs=Math.max(8,Math.floor(Math.min((hh-2)/H,(aw-2)/W)));
+ $('#main').style.setProperty('--mw',(cs*W+2)+'px');$('#bw').style.height=(H*cs+2)+'px';
+ c.width=W*cs*DPR;c.height=H*cs*DPR;c.style.width=(W*cs+2)+'px';c.style.height=(H*cs+2)+'px';
+ ns=Math.max(14,Math.min(30,Math.floor(cs*.9)));const n=ns*4;
+ nc.width=n*DPR;nc.height=n*DPR;nc.style.width=n+'px';nc.style.height=n+'px';
+ spr=mkSprites(cs);sprN=mkSprites(ns);hud.nx=null}
+let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(fit,80)});
+addEventListener('orientationchange',()=>setTimeout(fit,150));
+
+/* Динамичный фон */
+const bg=$('#bg'),b=bg.getContext('2d');let bw=0,bh=0,hueC=190,modeT=0,lastTier=0;
+function bgSize(){bg.width=bw=innerWidth>>1;bg.height=bh=innerHeight>>1}
+addEventListener('resize',bgSize);bgSize();
+const MODES=[
+ (t,h,a)=>{const r=Math.min(bw*.46,bh*.9);for(let k=0;k<3;k++){b.fillStyle=`hsl(${h+k*40},100%,70%)`;for(let i=0;i<70;i++){const p=i/70*6.283+t*.00018*(k+1)*(k%2?-1:1),s=Math.sin(p),d=1+s*s,z=1+i/70*2;b.globalAlpha=a*(.1+.35*i/70);b.fillRect(bw/2+r*Math.cos(p)/d,bh/2+r*s*Math.cos(p)/d*(k?.7:1),z,z)}}},
+ (t,h,a)=>{b.lineWidth=1.5;for(let s=0;s<2;s++){const cx=bw*(s?.9:.1);for(let i=0;i<7;i++){const f=(t*.00004+i/7)%1;b.strokeStyle=`hsl(${h+i*12},100%,70%)`;b.globalAlpha=a*(1-f)*.7;b.beginPath();b.arc(cx,bh/2,f*bh*.6,0,6.283);b.stroke()}}},
+ (t,h,a)=>{b.lineWidth=1.5;for(let i=0;i<16;i++){const s=i%2,z=8+(i%4)*8;b.save();b.translate(bw*(s?.88:.12)+Math.sin(t*.0004+i)*bw*.07,i/16*bh+Math.sin(t*.0003+i*2)*20);b.rotate(t*.0006*(s?1:-1)+i);b.strokeStyle=`hsl(${h+i*8},100%,70%)`;b.globalAlpha=a*.6;b.strokeRect(-z/2,-z/2,z,z);b.restore()}},
+ (t,h,a)=>{for(let s=0;s<2;s++){const cx=bw*(s?.88:.12);b.fillStyle=`hsl(${h+s*30},100%,70%)`;for(let i=0;i<150;i++){const an=i*.32+t*.0006*(s?1:-1),r=i*bh*.0032;b.globalAlpha=a*(.7-i/260);b.fillRect(cx+Math.cos(an)*r,bh/2+Math.sin(an)*r,2,2)}}},
+ (t,h,a)=>{for(let i=0;i<18;i++){const z=6+(i%4)*4;b.save();b.translate(bw*((i%2?.02:.78)+(i*.0531%.2)),bh-((t*.012*(1+i%3)+i*bh/18)%(bh+30))+15);b.rotate(t*.0008+i);b.fillStyle=`hsl(${h+i*10},100%,65%)`;b.globalAlpha=a*.45;b.beginPath();b.moveTo(0,-z);b.lineTo(z,z);b.lineTo(-z,z);b.fill();b.restore()}}
+];
+const tier=()=>st==='menu'?0:Math.floor(score/1000);
+function bgDraw(t){const tr=tier();if(tr!==lastTier){lastTier=tr;modeT=t}
+ hueC+=(190+tr*57-hueC)*.04;b.globalAlpha=1;b.fillStyle=`hsl(${hueC},55%,5%)`;b.fillRect(0,0,bw,bh);
+ MODES[tr%5](t,hueC,Math.min(1,(t-modeT)/1500));b.globalAlpha=1}
+
+/* Цикл */
+let last=0,bgT=0;
+function loop(t){const dt=Math.min(.1,(t-last)/1000||0);last=t;
+ if(st==='play'){if(fz>0)fz-=dt;if(mu>0)mu-=dt;acc+=dt*1000;
+  const iv=Math.max(90,800-lines*10)*(fz>0?2.5:1);
+  while(acc>=iv&&st==='play'){acc-=iv;if(!hit(cur.m,cur.x,cur.y+1))cur.y++;else lock()}}
+ draw();if(t-bgT>(st==='play'?60:33)){bgT=t;bgDraw(t)}requestAnimationFrame(loop)}
+
+/* Управление */
+addEventListener('keydown',e=>{const k=e.key;
+ const m={ArrowLeft:'left',ArrowRight:'right',ArrowDown:'down',ArrowUp:'rot',x:'rot',X:'rot',' ':'hard',p:'pause',P:'pause',Escape:'pause'}[k];
+ if(m){e.preventDefault();doAct(m)}else if(k>='1'&&k<='4')buy(+k-1)});
+document.querySelectorAll('.cb').forEach(el=>{let t1,t2;const stop=()=>{clearTimeout(t1);clearInterval(t2)};
+ el.addEventListener('pointerdown',e=>{e.preventDefault();doAct(el.dataset.a);
+  if(el.dataset.r)t1=setTimeout(()=>t2=setInterval(()=>doAct(el.dataset.a),el.dataset.a==='down'?60:90),180)});
+ ['pointerup','pointerleave','pointercancel'].forEach(v=>el.addEventListener(v,stop))});
+$('#bPlay').onclick=start;$('#bAgain').onclick=start;$('#bHow').onclick=()=>show('how');
+$('#bBack').onclick=()=>show('menu');$('#bRes').onclick=act.pause;
+$('#bMenu1').onclick=$('#bMenu2').onclick=()=>{st='menu';show('menu')};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&st==='play')act.pause()});
+show('menu');fit();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
