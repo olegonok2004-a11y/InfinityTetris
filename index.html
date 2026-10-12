@@ -207,7 +207,7 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
  <h2>КАК ИГРАТЬ</h2>
  <div class="how">
   Укладывай фигуры и собирай линии — очков столько, сколько сможешь набрать.<br>
-  <b>100 очков = 1 монета ◈.</b> Монеты сохраняются и тратятся на усиления рядом с полем.<br><br>
+  <b>10 очков = 1 монета ◈.</b> Монеты сохраняются и тратятся на усиления рядом с полем.<br><br>
   <b>ПК / планшет (гориз.):</b> ← → движение, ↑ / X поворот, ↓ ускорение, Пробел — сброс, P — пауза, 1–4 — усиления.<br>
   <b>Телефон / планшет (верт.):</b> экранные кнопки под полем.
  </div>
@@ -236,12 +236,12 @@ const save=()=>{try{localStorage.setItem('infTetris',JSON.stringify(S))}catch(e)
 const c=$('#c'),x=c.getContext('2d'),nc=$('#nc'),nx=nc.getContext('2d');
 let grid,cur,nxt,bag,score=0,lines=0,runCoins,st='menu',acc=0,fz=0,mu=0,cs=24,DPR=1,spr=[],sprN=[],ns=20;
 
-/* Усиления */
+/* Усиления — цены ×10 */
 const PU=[
- {i:'❄',n:'Заморозка',c:3,t:'fz',f(){fz=15}},
- {i:'✂',n:'Разрез',c:2,f(){grid.pop();grid.unshift(Array(W).fill(0))}},
- {i:'∞',n:'Идеал',c:1,f(){nxt=0}},
- {i:'×2',n:'Множитель',c:4,t:'mu',f(){mu=20}}
+ {i:'❄',n:'Заморозка',c:30,t:'fz',f(){fz=15}},
+ {i:'✂',n:'Разрез',c:20,f(){grid.pop();grid.unshift(Array(W).fill(0))}},
+ {i:'∞',n:'Идеал',c:10,f(){nxt=0}},
+ {i:'×2',n:'Множитель',c:40,t:'mu',f(){mu=20}}
 ];
 const pus=$('#pu');
 PU.forEach((p,k)=>{const b=document.createElement('button');b.className='pb';
@@ -254,15 +254,13 @@ const rotM=m=>m[0].map((_,i)=>m.map(r=>r[i]).reverse());
 function pull(){if(!bag.length){bag=[0,1,2,3,4,5,6];for(let i=6;i>0;i--){const j=Math.random()*(i+1)|0;[bag[i],bag[j]]=[bag[j],bag[i]]}}return bag.pop()}
 function hit(m,px,py){for(let r=0;r<m.length;r++)for(let q=0;q<m[r].length;q++)if(m[r][q]){const X=px+q,Y=py+r;if(X<0||X>=W||Y>=H||(Y>=0&&grid[Y][X]))return true}return false}
 function spawn(){const i=nxt;nxt=pull();const m=SH[i].map(r=>r.slice());cur={m,c:i+1,x:(W-m[0].length)/2|0,y:0,softDrop:0};if(hit(cur.m,cur.x,cur.y))over()}
-function addScore(n){n*=mu>0?2:1;score+=n;S.acc+=n;while(S.acc>=100){S.acc-=100;S.coins++;runCoins++}if(score>S.best)S.best=score}
+function addScore(n){n*=mu>0?2:1;score+=n;S.acc+=n;/* 10 очков = 1 монета */while(S.acc>=10){S.acc-=10;S.coins++;runCoins++}if(score>S.best)S.best=score}
 
-/* ОЧКИ: за собранные линии и за каждую клетку, пройденную вниз в момент фиксации.
-   За само нажатие «вниз» очки больше НЕ начисляются. */
+/* Очки: за собранные линии и за мягкий сброс — в момент фиксации */
 function lock(){
  cur.m.forEach((r,j)=>r.forEach((v,q)=>{if(v&&cur.y+j>=0)grid[cur.y+j][cur.x+q]=cur.c}));
  let n=0;grid=grid.filter(r=>{if(r.every(v=>v)){n++;return false}return true});
  while(grid.length<H)grid.unshift(Array(W).fill(0));
- // Бонус за мягкий сброс — начисляется один раз в момент фиксации
  if(cur.softDrop>0)addScore(cur.softDrop);
  if(n){lines+=n;addScore([0,100,300,500,800][n])}
  save();acc=0;spawn()}
@@ -270,10 +268,8 @@ function lock(){
 const act={
  left(){if(!hit(cur.m,cur.x-1,cur.y))cur.x--},
  right(){if(!hit(cur.m,cur.x+1,cur.y))cur.x++},
- // Ускорение: только сдвигаем вниз, очки копим в cur.softDrop, но НЕ начисляем
  down(){if(!hit(cur.m,cur.x,cur.y+1)){cur.y++;cur.softDrop++;acc=0}},
  rot(){const m=rotM(cur.m);for(const d of[0,-1,1,-2,2])if(!hit(m,cur.x+d,cur.y)){cur.m=m;cur.x+=d;return}},
- // Жёсткий сброс: считаем пройденное расстояние и начисляем в момент lock
  hard(){let d=0;while(!hit(cur.m,cur.x,cur.y+1)){cur.y++;d++}cur.softDrop+=d;lock()},
  pause(){if(st==='play'){st='pause';show('pause')}else if(st==='pause'){st='play';show()}}
 };
@@ -281,7 +277,7 @@ function doAct(a){if(st==='play'&&a!=='pause')act[a]();else if(a==='pause')act.p
 function start(){grid=Array.from({length:H},()=>Array(W).fill(0));bag=[];score=0;lines=0;runCoins=0;fz=mu=0;acc=0;nxt=pull();st='play';spawn();show();fit()}
 function over(){st='over';save();$('#oMeta').innerHTML=`Очки: ${score}<br>Заработано монет: ${runCoins} ◈`;show('over')}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id));
- $('#mMeta').textContent=`Рекорд: ${S.best}  ·  Монеты: ${S.coins} ◈  ·  100 очков = 1 ◈`}
+ $('#mMeta').textContent=`Рекорд: ${S.best}  ·  Монеты: ${S.coins} ◈  ·  10 очков = 1 ◈`}
 
 /* Спрайты клеток */
 function mkSprites(s){const p=Math.ceil(s*.4),z=s+p*2,out=[];
@@ -315,7 +311,7 @@ function fit(){
  const g=$('#game'),port=matchMedia('(orientation:portrait)').matches;
  const isTabletLand=matchMedia('(hover:none) and (pointer:coarse) and (min-width:821px) and (orientation:landscape)').matches;
  const isPhoneLand=matchMedia('(hover:none) and (pointer:coarse) and (max-width:820px) and (orientation:landscape)').matches;
- if(isPhoneLand)return; // на телефоне в ландшафте игра скрыта
+ if(isPhoneLand)return;
 
  const ctMain=$('#ctrlMain'), sd=$('#side'), sdR=$('#sideR');
  let hh=g.clientHeight-20-$('#pu').offsetHeight-16;
