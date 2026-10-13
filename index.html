@@ -105,7 +105,6 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   .pb .i{font-size:26px}
   .pb b{font-size:10px}
   .pb em{font-size:12px}
-  /* ── увеличенные отступы, чтобы не попадать по усилениям ── */
   .ctrl{gap:16px;margin-top:14px}
   .cb{height:66px;border-radius:16px;font-size:26px}
 }
@@ -179,7 +178,6 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   </aside>
   <div id="bw"><canvas id="c"></canvas></div>
   <div id="pu"></div>
-  <!-- Кнопки для телефона / планшета-вертикали -->
   <div class="ctrl" id="ctrlMain">
    <button class="cb" data-a="rot">⟳</button>
    <button class="cb" data-a="hard">⤓</button>
@@ -189,7 +187,6 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
    <button class="cb" data-a="right" data-r="1">▶</button>
   </div>
  </div>
- <!-- Правая колонка для планшета-горизонтали -->
  <aside id="sideR">
    <div class="ctrl">
      <button class="cb" data-a="rot">⟳</button>
@@ -202,7 +199,6 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
  </aside>
 </div>
 
-<!-- Заглушка «поверните телефон» -->
 <div id="rotate">
   <div class="ic">📱</div>
   <b>ПОВЕРНИТЕ УСТРОЙСТВО</b>
@@ -248,10 +244,117 @@ const save=()=>{try{localStorage.setItem('infTetris',JSON.stringify(S))}catch(e)
 const c=$('#c'),x=c.getContext('2d'),nc=$('#nc'),nx=nc.getContext('2d');
 let grid,cur,nxt,bag,score=0,lines=0,runCoins,st='menu',acc=0,fz=0,mu=0,cs=24,DPR=1,spr=[],sprN=[],ns=20;
 
-/* Усиления — цены ×10 */
+/* ─── Оптимизация: офскрин-буферы ─── */
+const bgBuf=document.createElement('canvas'),bgx=bgBuf.getContext('2d');
+const lockBuf=document.createElement('canvas'),lockx=lockBuf.getContext('2d');
+let gridDirty=true;
+
+/* ─── Анимация ломания блоков ─── */
+let particles=[], flashes=[];
+function spawnBlockParticles(gx,gy,color){
+  const cx=gx*cs+cs/2, cy=gy*cs+cs/2;
+  for(let k=0;k<4;k++){
+    const ang=Math.random()*Math.PI*2;
+    const spd=(0.4+Math.random()*0.9)*cs*0.09;
+    particles.push({
+      x:cx+(Math.random()-0.5)*cs*0.5,
+      y:cy+(Math.random()-0.5)*cs*0.5,
+      vx:Math.cos(ang)*spd,
+      vy:Math.sin(ang)*spd-cs*0.06,
+      r:cs*(0.09+Math.random()*0.09),
+      rot:Math.random()*Math.PI*2,
+      vr:(Math.random()-0.5)*0.55,
+      life:1,
+      decay:0.014+Math.random()*0.012,
+      c:color
+    });
+  }
+  for(let k=0;k<2;k++){
+    const ang=Math.random()*Math.PI*2;
+    const spd=(0.8+Math.random()*1.2)*cs*0.1;
+    particles.push({
+      x:cx, y:cy,
+      vx:Math.cos(ang)*spd,
+      vy:Math.sin(ang)*spd-cs*0.08,
+      r:cs*(0.05+Math.random()*0.05),
+      rot:0, vr:0,
+      life:1,
+      decay:0.022+Math.random()*0.014,
+      c:color,
+      spark:true
+    });
+  }
+}
+function updateParticles(dt){
+  const f=Math.min(3,dt*60);
+  const fr=Math.pow(0.94,f);
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx*f;
+    p.y+=p.vy*f;
+    p.vx*=fr;
+    p.vy=p.vy*fr+cs*0.01*f;
+    p.rot+=p.vr*f;
+    p.life-=p.decay*f;
+    if(p.life<=0)particles.splice(i,1);
+  }
+  for(let i=flashes.length-1;i>=0;i--){
+    flashes[i].life-=0.09*f;
+    if(flashes[i].life<=0)flashes.splice(i,1);
+  }
+}
+function drawParticles(g){
+  for(const fl of flashes){
+    const a=fl.life*fl.life;
+    const cy=fl.y*cs;
+    const grad=g.createLinearGradient(0,cy-cs*0.5,0,cy+cs*1.5);
+    grad.addColorStop(0,'rgba(255,255,255,0)');
+    grad.addColorStop(0.5,`rgba(255,255,255,${a*0.85})`);
+    grad.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=grad;
+    g.fillRect(0,cy-cs*0.5,W*cs,cs*2);
+    const rg=g.createRadialGradient(W*cs/2,cy+cs/2,0,W*cs/2,cy+cs/2,W*cs*0.85);
+    rg.addColorStop(0,`rgba(94,242,255,${a*0.45})`);
+    rg.addColorStop(0.5,`rgba(155,107,255,${a*0.18})`);
+    rg.addColorStop(1,'rgba(94,242,255,0)');
+    g.fillStyle=rg;
+    g.fillRect(0,cy-cs*3,W*cs,cs*7);
+  }
+  for(const p of particles){
+    const a=p.life;
+    const s=p.r*(0.35+p.life*0.75);
+    g.save();
+    g.translate(p.x,p.y);
+    if(p.rot)g.rotate(p.rot);
+    g.globalAlpha=a;
+    if(p.spark){
+      g.shadowColor='#ffffff';
+      g.shadowBlur=cs*0.7;
+      g.fillStyle='#ffffff';
+      g.beginPath();
+      g.arc(0,0,s*0.9,0,6.283);
+      g.fill();
+    }else{
+      g.shadowColor=COL[p.c-1];
+      g.shadowBlur=cs*0.55;
+      g.fillStyle=COL[p.c-1];
+      g.beginPath();
+      g.roundRect(-s,-s,s*2,s*2,s*0.5);
+      g.fill();
+      g.shadowBlur=0;
+      g.globalAlpha=a*0.85;
+      g.fillStyle='rgba(255,255,255,.95)';
+      g.fillRect(-s*0.35,-s*0.35,s*0.7,s*0.7);
+    }
+    g.restore();
+  }
+  g.globalAlpha=1;
+}
+
+/* Усиления */
 const PU=[
  {i:'❄',n:'Заморозка',c:30,t:'fz',f(){fz=15}},
- {i:'✂',n:'Разрез',c:20,f(){grid.pop();grid.unshift(Array(W).fill(0))}},
+ {i:'✂',n:'Разрез',c:20,f(){grid.pop();grid.unshift(Array(W).fill(0));gridDirty=true}},
  {i:'∞',n:'Идеал',c:10,f(){nxt=0}},
  {i:'×2',n:'Множитель',c:40,t:'mu',f(){mu=20}}
 ];
@@ -266,13 +369,23 @@ const rotM=m=>m[0].map((_,i)=>m.map(r=>r[i]).reverse());
 function pull(){if(!bag.length){bag=[0,1,2,3,4,5,6];for(let i=6;i>0;i--){const j=Math.random()*(i+1)|0;[bag[i],bag[j]]=[bag[j],bag[i]]}}return bag.pop()}
 function hit(m,px,py){for(let r=0;r<m.length;r++)for(let q=0;q<m[r].length;q++)if(m[r][q]){const X=px+q,Y=py+r;if(X<0||X>=W||Y>=H||(Y>=0&&grid[Y][X]))return true}return false}
 function spawn(){const i=nxt;nxt=pull();const m=SH[i].map(r=>r.slice());cur={m,c:i+1,x:(W-m[0].length)/2|0,y:0,softDrop:0};if(hit(cur.m,cur.x,cur.y))over()}
-function addScore(n){n*=mu>0?2:1;score+=n;S.acc+=n;/* 10 очков = 1 монета */while(S.acc>=10){S.acc-=10;S.coins++;runCoins++}if(score>S.best)S.best=score}
+function addScore(n){n*=mu>0?2:1;score+=n;S.acc+=n;while(S.acc>=10){S.acc-=10;S.coins++;runCoins++}if(score>S.best)S.best=score}
 
-/* Очки: за собранные линии и за мягкий сброс — в момент фиксации */
 function lock(){
  cur.m.forEach((r,j)=>r.forEach((v,q)=>{if(v&&cur.y+j>=0)grid[cur.y+j][cur.x+q]=cur.c}));
- let n=0;grid=grid.filter(r=>{if(r.every(v=>v)){n++;return false}return true});
+ const full=[];
+ for(let y=0;y<H;y++) if(grid[y].every(v=>v)) full.push(y);
+ for(const y of full){
+   for(let i=0;i<W;i++){
+     const v=grid[y][i];
+     if(v) spawnBlockParticles(i,y,v);
+   }
+   flashes.push({y,life:1});
+ }
+ let n=full.length;
+ grid=grid.filter(r=>!r.every(v=>v));
  while(grid.length<H)grid.unshift(Array(W).fill(0));
+ gridDirty=true;
  if(cur.softDrop>0)addScore(cur.softDrop);
  if(n){lines+=n;addScore([0,100,300,500,800][n])}
  save();acc=0;spawn()}
@@ -286,7 +399,7 @@ const act={
  pause(){if(st==='play'){st='pause';show('pause')}else if(st==='pause'){st='play';show()}}
 };
 function doAct(a){if(st==='play'&&a!=='pause')act[a]();else if(a==='pause')act.pause()}
-function start(){grid=Array.from({length:H},()=>Array(W).fill(0));bag=[];score=0;lines=0;runCoins=0;fz=mu=0;acc=0;nxt=pull();st='play';spawn();show();fit()}
+function start(){grid=Array.from({length:H},()=>Array(W).fill(0));bag=[];score=0;lines=0;runCoins=0;fz=mu=0;acc=0;particles.length=0;flashes.length=0;nxt=pull();st='play';gridDirty=true;spawn();show();fit()}
 function over(){st='over';save();$('#oMeta').innerHTML=`Очки: ${score}<br>Заработано монет: ${runCoins} ◈`;show('over')}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id))}
 
@@ -298,18 +411,48 @@ function mkSprites(s){const p=Math.ceil(s*.4),z=s+p*2,out=[];
  out.p=p;out.z=z;return out}
 function put(g,sp,px,py,s,ci,a){g.globalAlpha=a;g.drawImage(sp[ci-1],px*s-sp.p,py*s-sp.p,sp.z,sp.z)}
 
+/* ─── Отрисовка буферов ─── */
+function redrawBgBuf(){
+ bgx.setTransform(DPR,0,0,DPR,0,0);
+ bgx.clearRect(0,0,W*cs,H*cs);
+ bgx.strokeStyle='rgba(155,107,255,.12)';
+ bgx.lineWidth=1;
+ bgx.beginPath();
+ for(let i=1;i<W;i++){bgx.moveTo(i*cs,0);bgx.lineTo(i*cs,H*cs)}
+ for(let j=1;j<H;j++){bgx.moveTo(0,j*cs);bgx.lineTo(W*cs,j*cs)}
+ bgx.stroke();
+}
+function redrawLockBuf(){
+ lockx.setTransform(DPR,0,0,DPR,0,0);
+ lockx.clearRect(0,0,W*cs,H*cs);
+ if(grid){
+  for(let j=0;j<H;j++)for(let i=0;i<W;i++){
+   const v=grid[j][i];
+   if(v) put(lockx,spr,i,j,cs,v,1);
+  }
+ }
+ lockx.globalAlpha=1;
+}
+
 /* Отрисовка */
 let hud={};
 function setT(id,v){if(hud[id]!==v){hud[id]=v;$('#'+id).textContent=v}}
 function draw(){
- x.setTransform(DPR,0,0,DPR,0,0);x.clearRect(0,0,W*cs,H*cs);
- x.strokeStyle='rgba(155,107,255,.12)';x.lineWidth=1;x.beginPath();
- for(let i=1;i<W;i++){x.moveTo(i*cs,0);x.lineTo(i*cs,H*cs)}for(let j=1;j<H;j++){x.moveTo(0,j*cs);x.lineTo(W*cs,j*cs)}x.stroke();
- if(grid){for(let j=0;j<H;j++)for(let i=0;i<W;i++){const v=grid[j][i];if(v)put(x,spr,i,j,cs,v,1)}
-  if(cur&&st!=='over'){let gy=cur.y;while(!hit(cur.m,cur.x,gy+1))gy++;
-   for(let j=0;j<cur.m.length;j++)for(let q=0;q<cur.m[j].length;q++)if(cur.m[j][q]){put(x,spr,cur.x+q,gy+j,cs,cur.c,.2);put(x,spr,cur.x+q,cur.y+j,cs,cur.c,1)}}}
+ x.setTransform(DPR,0,0,DPR,0,0);
+ x.clearRect(0,0,W*cs,H*cs);
+ x.drawImage(bgBuf,0,0,W*cs,H*cs);
+ if(gridDirty){redrawLockBuf();gridDirty=false}
+ x.drawImage(lockBuf,0,0,W*cs,H*cs);
+ if(cur&&st!=='over'){
+  let gy=cur.y;while(!hit(cur.m,cur.x,gy+1))gy++;
+  for(let j=0;j<cur.m.length;j++)for(let q=0;q<cur.m[j].length;q++)if(cur.m[j][q]){
+   put(x,spr,cur.x+q,gy+j,cs,cur.c,.2);
+   put(x,spr,cur.x+q,cur.y+j,cs,cur.c,1);
+  }
+ }
  x.globalAlpha=1;
  if(fz>0){x.fillStyle='rgba(94,242,255,.07)';x.fillRect(0,0,W*cs,H*cs)}
+ if(particles.length||flashes.length) drawParticles(x);
  if(hud.nx!==nxt){hud.nx=nxt;nx.setTransform(DPR,0,0,DPR,0,0);nx.clearRect(0,0,nc.width,nc.height);
   if(nxt!==undefined){const m=SH[nxt];for(let j=0;j<m.length;j++)for(let q=0;q<m[j].length;q++)if(m[j][q])put(nx,sprN,q+(4-m[0].length)/2,j+(4-m.length)/2,ns,nxt+1,1);nx.globalAlpha=1}}
  setT('sc',score);setT('co',S.coins);setT('be',S.best);setT('li',lines);
@@ -318,7 +461,8 @@ function draw(){
   const t=on?Math.ceil(p.t==='fz'?fz:mu)+' с':p.c+' ◈';if(p.txt!==t){p.txt=t;p.em.textContent=t}})}
 
 function fit(){
- DPR=Math.min(devicePixelRatio||1,2);
+ const mobile=matchMedia('(hover:none) and (pointer:coarse)').matches;
+ DPR=Math.min(devicePixelRatio||1, mobile?1.5:2);
  const g=$('#game'),port=matchMedia('(orientation:portrait)').matches;
  const isTabletLand=matchMedia('(hover:none) and (pointer:coarse) and (min-width:821px) and (orientation:landscape)').matches;
  const isPhoneLand=matchMedia('(hover:none) and (pointer:coarse) and (max-width:820px) and (orientation:landscape)').matches;
@@ -348,7 +492,12 @@ function fit(){
  c.width=W*cs*DPR;c.height=H*cs*DPR;c.style.width=(W*cs+2)+'px';c.style.height=(H*cs+2)+'px';
  ns=Math.max(14,Math.min(30,Math.floor(cs*.9)));const n=ns*4;
  nc.width=n*DPR;nc.height=n*DPR;nc.style.width=n+'px';nc.style.height=n+'px';
- spr=mkSprites(cs);sprN=mkSprites(ns);hud.nx=null}
+ spr=mkSprites(cs);sprN=mkSprites(ns);hud.nx=null;
+ /* Пересоздаём буферы под новый масштаб */
+ bgBuf.width=W*cs*DPR;bgBuf.height=H*cs*DPR;
+ lockBuf.width=W*cs*DPR;lockBuf.height=H*cs*DPR;
+ redrawBgBuf();gridDirty=true;
+}
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(fit,80)});
 addEventListener('orientationchange',()=>setTimeout(fit,150));
 
@@ -374,7 +523,10 @@ function loop(t){const dt=Math.min(.1,(t-last)/1000||0);last=t;
  if(st==='play'){if(fz>0)fz-=dt;if(mu>0)mu-=dt;acc+=dt*1000;
   const iv=Math.max(90,800-lines*10)*(fz>0?2.5:1);
   while(acc>=iv&&st==='play'){acc-=iv;if(!hit(cur.m,cur.x,cur.y+1))cur.y++;else lock()}}
- draw();if(t-bgT>(st==='play'?60:33)){bgT=t;bgDraw(t)}requestAnimationFrame(loop)}
+ updateParticles(dt);
+ draw();
+ if(t-bgT>(st==='play'?60:33)){bgT=t;bgDraw(t)}
+ requestAnimationFrame(loop)}
 
 /* Управление */
 addEventListener('keydown',e=>{const k=e.key;
