@@ -30,7 +30,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:#e9e6f
 .nx{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px}
 #bw{display:flex;justify-content:center;flex:none}
 #pu{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.ctrl{display:none;grid-template-columns:repeat(3,1fr);gap:10px}
+.ctrl{display:none;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:10px}
 .box,.nx,.pb,.cb{background:var(--pn);border:1px solid var(--ln);border-radius:16px}
 .box{padding:10px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .box small,.nx small{display:block;font-size:11px;letter-spacing:.2em;color:#a89fe0;text-align:center}
@@ -90,7 +90,7 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
 /* Телефонные устройства */
 @media (hover:none) and (pointer:coarse) and (max-width:820px){
   #game{padding:calc(8px + var(--safe-t)) calc(8px + var(--safe-r)) calc(8px + var(--safe-b)) calc(8px + var(--safe-l))}
-  #main{gap:8px;width:100%;max-width:520px}
+  #main{gap:14px;width:100%;max-width:520px}
   #side{position:static;margin:0;width:100%;flex-direction:row;align-items:stretch;gap:6px}
   .stats{flex:1;grid-template-columns:repeat(3,1fr);gap:6px}
   .stats .box:nth-child(4){display:none}
@@ -100,13 +100,14 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   .box{padding:6px 8px;border-radius:12px}
   .box small{font-size:9px;letter-spacing:.08em}
   .box b{font-size:clamp(16px,4.6vw,22px)}
-  #pu{gap:6px}
+  #pu{gap:10px}
   .pb{padding:12px 2px;border-radius:14px;min-height:76px}
   .pb .i{font-size:26px}
   .pb b{font-size:10px}
   .pb em{font-size:12px}
-  .ctrl{gap:8px}
-  .cb{height:56px;border-radius:14px;font-size:24px}
+  /* ── увеличенные отступы, чтобы не попадать по усилениям ── */
+  .ctrl{gap:16px;margin-top:14px}
+  .cb{height:66px;border-radius:16px;font-size:26px}
 }
 
 /* Телефон в ландшафте: заглушка */
@@ -121,7 +122,7 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
     flex-direction:column}
   #sideR{display:flex;position:absolute;left:100%;margin-left:16px;
     width:clamp(140px,14vw,190px)}
-  #sideR .ctrl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  #sideR .ctrl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:0}
   #sideR .cb{height:clamp(48px,6.5vw,64px);font-size:clamp(20px,2.6vw,26px)}
   #main{width:var(--mw,60vmin)}
   #pu{grid-template-columns:repeat(4,1fr)}
@@ -134,9 +135,21 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   .stats{flex:1;grid-template-columns:repeat(4,1fr);gap:8px}
   .nx{flex-direction:row;padding:6px 12px;gap:8px}
   .nx small{display:none}
-  #pu{gap:10px}
+  #pu{gap:12px}
   .pb{padding:14px 4px;min-height:88px}
-  .cb{height:64px}
+  .ctrl{gap:16px;margin-top:14px}
+  .cb{height:68px}
+}
+
+/* ─── ПК и планшет-горизонталь: главное меню ×2 ─── */
+@media (min-width:821px) and (orientation:landscape){
+  #menu{gap:min(4vmin,3vh);padding:12px 24px}
+  #menu .inf{font-size:min(48vmin,40vh)}
+  #menu h1{font-size:min(12vmin,9vh);letter-spacing:.3em}
+  #menu .sub{font-size:min(2.6vmin,2.2vh);letter-spacing:.5em}
+  #menu .btn{min-width:min(500px,60vw);
+    padding:min(4vmin,3vh) min(7vmin,6vh);
+    font-size:min(3.4vmin,3vh);border-radius:60px}
 }
 
 /* Ландшафт с низкой высотой */
@@ -201,7 +214,6 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
  <h1>INFINITY</h1><div class="sub">TETRIS · БЕСКОНЕЧНЫЙ УРОВЕНЬ</div>
  <button class="btn" id="bPlay">ИГРАТЬ</button>
  <button class="btn alt" id="bHow">КАК ИГРАТЬ</button>
- <div class="meta" id="mMeta"></div>
 </div>
 <div class="screen" id="how">
  <h2>КАК ИГРАТЬ</h2>
@@ -276,8 +288,7 @@ const act={
 function doAct(a){if(st==='play'&&a!=='pause')act[a]();else if(a==='pause')act.pause()}
 function start(){grid=Array.from({length:H},()=>Array(W).fill(0));bag=[];score=0;lines=0;runCoins=0;fz=mu=0;acc=0;nxt=pull();st='play';spawn();show();fit()}
 function over(){st='over';save();$('#oMeta').innerHTML=`Очки: ${score}<br>Заработано монет: ${runCoins} ◈`;show('over')}
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id));
- $('#mMeta').textContent=`Рекорд: ${S.best}  ·  Монеты: ${S.coins} ◈  ·  10 очков = 1 ◈`}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('show',s.id===id))}
 
 /* Спрайты клеток */
 function mkSprites(s){const p=Math.ceil(s*.4),z=s+p*2,out=[];
@@ -313,10 +324,16 @@ function fit(){
  const isPhoneLand=matchMedia('(hover:none) and (pointer:coarse) and (max-width:820px) and (orientation:landscape)').matches;
  if(isPhoneLand)return;
 
- const ctMain=$('#ctrlMain'), sd=$('#side'), sdR=$('#sideR');
- let hh=g.clientHeight-20-$('#pu').offsetHeight-16;
- if(port)hh-=sd.offsetHeight+10;
- if(ctMain.offsetHeight&&getComputedStyle(ctMain).display!=='none'&&!isTabletLand)hh-=ctMain.offsetHeight+10;
+ const ctMain=$('#ctrlMain'), sd=$('#side'), sdR=$('#sideR'), bwEl=$('#bw'), puEl=$('#pu');
+ const vis=el=>!!el&&getComputedStyle(el).display!=='none';
+ const inFlow=el=>vis(el)&&getComputedStyle(el).position!=='absolute';
+ const gap=parseFloat(getComputedStyle($('#main')).gap)||10;
+ const kids=[sd,bwEl,puEl,ctMain].filter(inFlow);
+ const gcs=getComputedStyle(g);
+ const padV=parseFloat(gcs.paddingTop)+parseFloat(gcs.paddingBottom);
+ let others=0;
+ kids.forEach(el=>{if(el!==bwEl)others+=el.offsetHeight});
+ let hh=g.clientHeight-padV-8-others-gap*Math.max(0,kids.length-1);
 
  let aw;
  if(port){
@@ -327,7 +344,7 @@ function fit(){
    aw=innerWidth-24-leftW-32-rightW;
  }
  cs=Math.max(8,Math.floor(Math.min((hh-2)/H,(aw-2)/W)));
- $('#main').style.setProperty('--mw',(cs*W+2)+'px');$('#bw').style.height=(H*cs+2)+'px';
+ $('#main').style.setProperty('--mw',(cs*W+2)+'px');bwEl.style.height=(H*cs+2)+'px';
  c.width=W*cs*DPR;c.height=H*cs*DPR;c.style.width=(W*cs+2)+'px';c.style.height=(H*cs+2)+'px';
  ns=Math.max(14,Math.min(30,Math.floor(cs*.9)));const n=ns*4;
  nc.width=n*DPR;nc.height=n*DPR;nc.style.width=n+'px';nc.style.height=n+'px';
