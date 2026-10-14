@@ -70,6 +70,7 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
 .btn:hover{transform:scale(1.04)}.btn:active{transform:scale(.97)}
 .btn.alt{border-color:var(--c2);box-shadow:0 0 14px rgba(155,107,255,.35);background:transparent}
 .btn.small{min-width:210px;padding:12px 22px;font-size:14px}
+.btn.tiny{min-width:96px;padding:8px 18px;font-size:13px;letter-spacing:.15em;border-radius:30px}
 .meta{color:var(--c3);font-size:13px;letter-spacing:.1em}
 
 /* ─── Экран «Как играть» (расширенный) ─── */
@@ -105,6 +106,24 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   letter-spacing:.08em;color:var(--c1);text-shadow:0 0 14px var(--c1);margin:8px 0 4px}
 .cr-alias{font-size:11px;letter-spacing:.35em;color:var(--c2)}
 .cr-ver{text-align:center;font-size:11px;letter-spacing:.25em;color:#7c74b3;margin-top:10px}
+
+/* ─── Экран «Настройки» ─── */
+.settings-box{display:flex;flex-direction:column;gap:12px;width:min(440px,90vw)}
+.set-row{display:flex;align-items:center;gap:14px;
+  padding:12px 18px;background:rgba(22,15,52,.6);border:1px solid var(--ln);
+  border-radius:14px;font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:.15em}
+.set-row label{flex:0 0 110px;color:#a89fe0;text-align:left}
+.set-row .val{flex:0 0 52px;color:var(--c3);text-align:right;font-size:14px;
+  font-feature-settings:"tnum"}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:6px;
+  background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:3px;
+  outline:none;cursor:pointer;min-width:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:22px;height:22px;border-radius:50%;background:#fff;
+  border:2px solid var(--c1);box-shadow:0 0 10px var(--c1);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
+  background:#fff;border:2px solid var(--c1);box-shadow:0 0 10px var(--c1);cursor:pointer}
+input[type=range]:disabled{opacity:.35;cursor:not-allowed}
 
 /* ─── ЗАГЛУШКА ДЛЯ ТЕЛЕФОНА В ЛАНДШАФТЕ ─── */
 #rotate{
@@ -150,6 +169,13 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   .lg .ic{flex-basis:48px;font-size:14px;min-height:26px}
   .lg .ic.c-b{font-size:16px}
   .lg .txt em,.lg .txt small{font-size:11px}
+
+  /* Настройки — компактнее */
+  .settings-box{width:min(440px,92vw);gap:10px}
+  .set-row{padding:10px 14px;gap:10px;font-size:12px;border-radius:12px}
+  .set-row label{flex:0 0 90px}
+  .set-row .val{flex:0 0 44px;font-size:13px}
+  .btn.tiny{min-width:82px;padding:8px 14px;font-size:12px}
 }
 
 /* Телефон в ландшафте: заглушка */
@@ -223,9 +249,9 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   <div id="bw"><canvas id="c"></canvas></div>
   <div id="pu"></div>
   <div class="ctrl" id="ctrlMain">
-   <button class="cb" data-a="rot">⟳</button>
-   <button class="cb" data-a="hard">⤓</button>
    <button class="cb" data-a="pause">❚❚</button>
+   <button class="cb" data-a="hard">⤓</button>
+   <button class="cb" data-a="rot">⟳</button>
    <button class="cb" data-a="left" data-r="1">◀</button>
    <button class="cb" data-a="down" data-r="1">▼</button>
    <button class="cb" data-a="right" data-r="1">▶</button>
@@ -233,9 +259,9 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
  </div>
  <aside id="sideR">
    <div class="ctrl">
-     <button class="cb" data-a="rot">⟳</button>
-     <button class="cb" data-a="hard">⤓</button>
      <button class="cb" data-a="pause">❚❚</button>
+     <button class="cb" data-a="hard">⤓</button>
+     <button class="cb" data-a="rot">⟳</button>
      <button class="cb" data-a="left" data-r="1">◀</button>
      <button class="cb" data-a="down" data-r="1">▼</button>
      <button class="cb" data-a="right" data-r="1">▶</button>
@@ -255,6 +281,7 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
  <h1>INFINITY</h1><div class="sub">TETRIS · БЕСКОНЕЧНЫЙ УРОВЕНЬ</div>
  <button class="btn" id="bPlay">ИГРАТЬ</button>
  <button class="btn alt" id="bHow">КАК ИГРАТЬ</button>
+ <button class="btn alt" id="bSettings">НАСТРОЙКИ</button>
  <button class="btn alt" id="bAbout">ОБ ИГРЕ</button>
 </div>
 
@@ -339,6 +366,19 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
     </div>
    </div>
 
+   <h3>ЗВУК</h3>
+   <div class="legend">
+    <div class="lg">
+      <span class="ic">🔊</span>
+      <span class="txt">
+        Короткие звуки постановки фигуры и сбора линий.
+        Отключаются и настраиваются по громкости на экране
+        <b>Настройки</b> в главном меню — или кнопкой <b>«ЗВУК»</b>
+        в меню Пауза.
+      </span>
+    </div>
+   </div>
+
    <h3>ОРИЕНТАЦИЯ ЭКРАНА</h3>
    <div class="legend">
     <div class="lg">
@@ -349,6 +389,23 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   </div>
  </div>
  <button class="btn" id="bBack">НАЗАД</button>
+</div>
+
+<!-- ═══════════════ НАСТРОЙКИ ═══════════════ -->
+<div class="screen" id="settings">
+ <h2>НАСТРОЙКИ</h2>
+ <div class="settings-box">
+  <div class="set-row">
+   <label>ЗВУКИ</label>
+   <button class="btn tiny" id="bSnd">ВКЛ</button>
+  </div>
+  <div class="set-row">
+   <label>ГРОМКОСТЬ</label>
+   <input type="range" id="volRange" min="0" max="100" step="1" value="50">
+   <span class="val" id="volVal">50%</span>
+  </div>
+ </div>
+ <button class="btn" id="bSetBack">НАЗАД</button>
 </div>
 
 <!-- ═══════════════ ОБ ИГРЕ ═══════════════ -->
@@ -375,6 +432,7 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
  <h2>ПАУЗА</h2>
  <button class="btn" id="bRes">ПРОДОЛЖИТЬ</button>
  <button class="btn alt" id="bBst">БУСТЕРЫ: ВКЛ</button>
+ <button class="btn alt" id="bSndPause">ЗВУК: ВКЛ</button>
  <button class="btn alt" id="bMenu1">В МЕНЮ</button>
 </div>
 
@@ -391,15 +449,116 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
 const $=s=>document.querySelector(s),W=10,H=20;
 const SH=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[0,1,1],[1,1,0]],[[1,1,0],[0,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]]];
 const COL=['#5ef2ff','#ffd36b','#b57bff','#6bffb0','#ff6b9d','#6b8bff','#ff9d5e'];
-let S={coins:0,best:0,acc:0};
+let S={coins:0,best:0,acc:0,snd:1,vol:0.5};
 try{Object.assign(S,JSON.parse(localStorage.getItem('infTetris')||'{}'))}catch(e){}
 const save=()=>{try{localStorage.setItem('infTetris',JSON.stringify(S))}catch(e){}};
 const c=$('#c'),x=c.getContext('2d'),nc=$('#nc'),nx=nc.getContext('2d');
 let grid,cur,nxt,bag,score=0,lines=0,runCoins,st='menu',acc=0,fz=0,mu=0,cs=24,DPR=1,spr=[],sprN=[],ns=20;
 
-/* ─── Состояние панели бустеров ───
-   Работает на всех устройствах. По умолчанию:
-   на телефоне — скрыто (стакан крупнее), на ПК/планшете — показано. */
+/* ─── Звук (Web Audio API, без внешних файлов) ─── */
+const Audio_={
+  ctx:null, gain:null,
+  init(){
+    if(this.ctx) return;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC) return;
+    this.ctx=new AC();
+    this.gain=this.ctx.createGain();
+    this.gain.gain.value=S.snd?S.vol:0;
+    this.gain.connect(this.ctx.destination);
+  },
+  resume(){ if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); },
+  setEnabled(v){
+    S.snd=v?1:0;
+    if(this.gain) this.gain.gain.value=S.snd?S.vol:0;
+    save(); updateSoundUI();
+  },
+  setVolume(v){
+    S.vol=Math.max(0,Math.min(1,v));
+    if(this.gain) this.gain.gain.value=S.snd?S.vol:0;
+    save();
+  },
+  /* Глухой "стук" при постановке фигуры */
+  playLock(){
+    if(!S.snd||!this.ctx) return;
+    const t=this.ctx.currentTime;
+    const o=this.ctx.createOscillator();
+    const g=this.ctx.createGain();
+    o.type='triangle';
+    o.frequency.setValueAtTime(200,t);
+    o.frequency.exponentialRampToValueAtTime(70,t+0.09);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.42,t+0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.14);
+    o.connect(g).connect(this.gain);
+    o.start(t); o.stop(t+0.15);
+    /* низкий "тук" поверх — придаёт вес */
+    const o2=this.ctx.createOscillator();
+    const g2=this.ctx.createGain();
+    o2.type='sine';
+    o2.frequency.setValueAtTime(90,t);
+    o2.frequency.exponentialRampToValueAtTime(45,t+0.1);
+    g2.gain.setValueAtTime(0.0001,t);
+    g2.gain.exponentialRampToValueAtTime(0.35,t+0.004);
+    g2.gain.exponentialRampToValueAtTime(0.0001,t+0.12);
+    o2.connect(g2).connect(this.gain);
+    o2.start(t); o2.stop(t+0.13);
+  },
+  /* Хрустящий шумовой всплеск при разрушении линий.
+     count — количество собранных линий (1..4), влияет на яркость и высоту */
+  playClear(count){
+    if(!S.snd||!this.ctx) return;
+    const t=this.ctx.currentTime;
+    /* шумовой буфер */
+    const dur=0.28+Math.min(count,4)*0.04;
+    const buf=this.ctx.createBuffer(1,Math.floor(dur*this.ctx.sampleRate),this.ctx.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++){
+      const k=i/d.length;
+      d[i]=(Math.random()*2-1)*Math.pow(1-k,2.2);
+    }
+    const src=this.ctx.createBufferSource();
+    src.buffer=buf;
+    const filt=this.ctx.createBiquadFilter();
+    filt.type='highpass';
+    filt.frequency.value=700+count*250;
+    const g=this.ctx.createGain();
+    g.gain.value=0.45+Math.min(count,4)*0.14;
+    src.connect(filt).connect(g).connect(this.gain);
+    src.start(t);
+    /* приятный "блип" сверху — тем выше, чем больше линий */
+    if(count>=2){
+      const o=this.ctx.createOscillator();
+      const og=this.ctx.createGain();
+      o.type='sine';
+      const f0=620+count*90;
+      o.frequency.setValueAtTime(f0,t);
+      o.frequency.exponentialRampToValueAtTime(f0*1.9,t+0.22);
+      og.gain.setValueAtTime(0.0001,t);
+      og.gain.exponentialRampToValueAtTime(0.22,t+0.01);
+      og.gain.exponentialRampToValueAtTime(0.0001,t+0.32);
+      o.connect(og).connect(this.gain);
+      o.start(t); o.stop(t+0.33);
+    }
+  }
+};
+/* Разблокировка контекста на первом жесте пользователя (важно для iOS) */
+function unlockAudio(){
+  Audio_.init(); Audio_.resume();
+  window.removeEventListener('pointerdown',unlockAudio);
+  window.removeEventListener('keydown',unlockAudio);
+}
+window.addEventListener('pointerdown',unlockAudio);
+window.addEventListener('keydown',unlockAudio);
+
+function updateSoundUI(){
+  const v=S.snd?'ВКЛ':'ВЫКЛ';
+  const b1=$('#bSnd'); if(b1) b1.textContent=v;
+  const b2=$('#bSndPause'); if(b2) b2.textContent='ЗВУК: '+v;
+  const vr=$('#volRange'); if(vr) vr.disabled=!S.snd;
+}
+
+/* ─── Состояние панели бустеров ─── */
 const isMobileMQ=matchMedia('(hover:none) and (pointer:coarse)');
 let bstOn;
 (function initBst(){
@@ -547,6 +706,8 @@ function addScore(n){n*=mu>0?2:1;score+=n;S.acc+=n;while(S.acc>=10){S.acc-=10;S.
 
 function lock(){
  cur.m.forEach((r,j)=>r.forEach((v,q)=>{if(v&&cur.y+j>=0)grid[cur.y+j][cur.x+q]=cur.c}));
+ /* звук постановки фигуры на поле */
+ Audio_.playLock();
  const full=[];
  for(let y=0;y<H;y++) if(grid[y].every(v=>v)) full.push(y);
  for(const y of full){
@@ -557,6 +718,8 @@ function lock(){
    flashes.push({y,life:1});
  }
  let n=full.length;
+ /* звук разрушения линий */
+ if(n) Audio_.playClear(n);
  grid=grid.filter(r=>!r.every(v=>v));
  while(grid.length<H)grid.unshift(Array(W).fill(0));
  gridDirty=true;
@@ -713,13 +876,32 @@ document.querySelectorAll('.cb').forEach(el=>{let t1,t2;const stop=()=>{clearTim
 /* Кнопки интерфейса */
 $('#bPlay').onclick=start;$('#bAgain').onclick=start;
 $('#bHow').onclick=()=>show('how');
+$('#bSettings').onclick=()=>{updateSoundUI();show('settings')};
 $('#bAbout').onclick=()=>show('about');
 $('#bBack').onclick=()=>show('menu');
+$('#bSetBack').onclick=()=>show('menu');
 $('#bBack2').onclick=()=>show('menu');
 $('#bRes').onclick=act.pause;
 $('#bBst').onclick=()=>toggleBst();
+$('#bSnd').onclick=()=>Audio_.setEnabled(!S.snd);
+$('#bSndPause').onclick=()=>Audio_.setEnabled(!S.snd);
 $('#bMenu1').onclick=$('#bMenu2').onclick=()=>{st='menu';show('menu')};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&st==='play')act.pause()});
+
+/* Инициализация настроек звука в UI */
+(function initSoundUI(){
+  const vr=$('#volRange'), vl=$('#volVal');
+  if(vr){
+    vr.value=Math.round(S.vol*100);
+    vl.textContent=Math.round(S.vol*100)+'%';
+    vr.addEventListener('input',e=>{
+      const v=+e.target.value;
+      Audio_.setVolume(v/100);
+      vl.textContent=v+'%';
+    });
+  }
+  updateSoundUI();
+})();
 
 show('menu');fit();requestAnimationFrame(loop);
 </script>
