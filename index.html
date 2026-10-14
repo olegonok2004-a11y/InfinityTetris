@@ -46,9 +46,9 @@ canvas#c{border-radius:12px;border:1px solid var(--c2);box-shadow:0 0 30px rgba(
 .pb:not(:disabled):active{transform:scale(.96)}
 .pb:disabled{opacity:.35;cursor:not-allowed}
 .pb.on{border-color:var(--c3);box-shadow:0 0 18px rgba(255,211,107,.6)}
-.cb{height:64px;color:var(--c1);font:700 26px 'Orbitron',sans-serif;display:flex;align-items:center;
-  justify-content:center;transition:transform .08s,background .12s}
-.cb:active{background:rgba(94,242,255,.3);transform:scale(.95)}
+
+/* ─── Скрытие панели бустеров (любое устройство) ─── */
+body.bst-off #pu{display:none}
 
 .screen{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:16px;text-align:center;
@@ -69,18 +69,54 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   box-shadow:0 0 20px rgba(94,242,255,.35);transition:transform .15s}
 .btn:hover{transform:scale(1.04)}.btn:active{transform:scale(.97)}
 .btn.alt{border-color:var(--c2);box-shadow:0 0 14px rgba(155,107,255,.35);background:transparent}
+.btn.small{min-width:210px;padding:12px 22px;font-size:14px}
 .meta{color:var(--c3);font-size:13px;letter-spacing:.1em}
-.how{max-width:460px;font-size:14px;line-height:1.7;color:#cfc9f5;font-family:system-ui,sans-serif}
+
+/* ─── Экран «Как играть» (расширенный) ─── */
+.how{max-width:min(560px,92vw);width:100%;font-size:13px;line-height:1.55;
+  color:#cfc9f5;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;text-align:left}
+.how-inner{overflow-y:auto;max-height:min(58vh,540px);
+  padding:4px 10px 8px 4px;scrollbar-width:thin;scrollbar-color:var(--c2) transparent}
+.how-inner::-webkit-scrollbar{width:6px}
+.how-inner::-webkit-scrollbar-thumb{background:var(--c2);border-radius:3px}
+.how .intro{text-align:center;margin:0 0 6px;color:#cfc9f5}
 .how b{color:var(--c1)}
+.how h3{margin:16px 0 8px;font-family:'Orbitron',sans-serif;font-size:12px;
+  letter-spacing:.3em;color:var(--c3);text-align:center;font-weight:700;
+  text-shadow:0 0 8px rgba(255,211,107,.45)}
+.how h3:first-child{margin-top:0}
+.legend{display:flex;flex-direction:column;gap:6px}
+.lg{display:flex;align-items:center;gap:12px;padding:7px 10px;
+  background:rgba(22,15,52,.55);border:1px solid var(--ln);border-radius:10px}
+.lg .ic{flex:0 0 58px;display:inline-flex;align-items:center;justify-content:center;
+  min-height:30px;font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;
+  color:var(--c1);text-shadow:0 0 8px var(--c1);letter-spacing:.02em}
+.lg .ic.c-b{color:var(--c3);text-shadow:0 0 8px var(--c3);font-size:18px}
+.lg .txt{flex:1;min-width:0}
+.lg .txt em{font-style:normal;color:#a89fe0;font-size:12px}
+.lg .txt small{display:block;color:#a89fe0;font-size:11px;margin-top:2px;letter-spacing:.03em}
+
+/* ─── Экран «Об игре» ─── */
+.credits{text-align:center;margin:16px auto 8px;padding:16px 22px;
+  border:1px solid var(--ln);border-radius:16px;background:rgba(22,15,52,.6);
+  max-width:min(420px,90vw)}
+.cr-label{font-size:11px;letter-spacing:.35em;color:#a89fe0}
+.cr-name{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;
+  letter-spacing:.08em;color:var(--c1);text-shadow:0 0 14px var(--c1);margin:8px 0 4px}
+.cr-alias{font-size:11px;letter-spacing:.35em;color:var(--c2)}
+.cr-ver{text-align:center;font-size:11px;letter-spacing:.25em;color:#7c74b3;margin-top:10px}
 
 /* ─── ЗАГЛУШКА ДЛЯ ТЕЛЕФОНА В ЛАНДШАФТЕ ─── */
 #rotate{
   position:fixed;inset:0;z-index:20;display:none;flex-direction:column;align-items:center;
   justify-content:center;gap:18px;text-align:center;padding:24px;
   background:rgba(5,3,13,.96);color:#e9e6ff}
-#rotate .ic{font-size:64px;animation:rot 2s ease-in-out infinite}
+#rotate .ic{font-size:64px;animation:rot 2s ease-in-out infinite;
+  filter:drop-shadow(0 0 16px var(--c1))}
 @keyframes rot{0%,40%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
-#rotate b{font-size:18px;letter-spacing:.15em;color:var(--c1)}
+#rotate b{font-size:18px;letter-spacing:.15em;color:var(--c1);
+  text-shadow:0 0 12px var(--c1)}
+#rotate .sub{margin-top:2px}
 
 /* ─── ПЛАНШЕТ: горизонталь = ПК + кнопки, вертикаль = телефон ─── */
 @media (hover:none) and (pointer:coarse){
@@ -107,6 +143,13 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   .pb em{font-size:12px}
   .ctrl{gap:16px;margin-top:14px}
   .cb{height:66px;border-radius:16px;font-size:26px}
+
+  /* Расширенный экран помощи — компактнее */
+  .how{font-size:12px}
+  .lg{padding:6px 8px;gap:10px}
+  .lg .ic{flex-basis:48px;font-size:14px;min-height:26px}
+  .lg .ic.c-b{font-size:16px}
+  .lg .txt em,.lg .txt small{font-size:11px}
 }
 
 /* Телефон в ландшафте: заглушка */
@@ -142,13 +185,13 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
 
 /* ─── ПК и планшет-горизонталь: главное меню ×2 ─── */
 @media (min-width:821px) and (orientation:landscape){
-  #menu{gap:min(4vmin,3vh);padding:12px 24px}
-  #menu .inf{font-size:min(48vmin,40vh)}
-  #menu h1{font-size:min(12vmin,9vh);letter-spacing:.3em}
-  #menu .sub{font-size:min(2.6vmin,2.2vh);letter-spacing:.5em}
-  #menu .btn{min-width:min(500px,60vw);
-    padding:min(4vmin,3vh) min(7vmin,6vh);
-    font-size:min(3.4vmin,3vh);border-radius:60px}
+  #menu{gap:min(3.2vmin,2.6vh);padding:12px 24px}
+  #menu .inf{font-size:min(42vmin,34vh)}
+  #menu h1{font-size:min(11vmin,8vh);letter-spacing:.3em}
+  #menu .sub{font-size:min(2.4vmin,2vh);letter-spacing:.5em}
+  #menu .btn{min-width:min(480px,58vw);
+    padding:min(3.4vmin,2.6vh) min(7vmin,6vh);
+    font-size:min(3.2vmin,2.8vh);border-radius:60px}
 }
 
 /* Ландшафт с низкой высотой */
@@ -160,6 +203,7 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
   .pb{padding:5px 2px}.pb .i{font-size:20px}.pb b{font-size:9px}.pb em{font-size:11px}
   .cb{height:44px}
   .screen{gap:8px}.inf{font-size:70px}h1{font-size:22px}.btn{padding:10px 20px;min-width:210px}
+  .how-inner{max-height:50vh}
 }
 </style>
 </head>
@@ -201,31 +245,140 @@ h2{margin:0;font-size:clamp(22px,5vmin,36px);letter-spacing:.15em;color:var(--c1
 
 <div id="rotate">
   <div class="ic">📱</div>
-  <b>ПОВЕРНИТЕ УСТРОЙСТВО</b>
+  <b>РАЗВЕРНИТЕ ЭКРАН</b>
   <div class="sub">Infinity Tetris играется вертикально</div>
 </div>
 
+<!-- ═══════════════ МЕНЮ ═══════════════ -->
 <div class="screen show" id="menu">
  <div class="inf">∞</div>
  <h1>INFINITY</h1><div class="sub">TETRIS · БЕСКОНЕЧНЫЙ УРОВЕНЬ</div>
  <button class="btn" id="bPlay">ИГРАТЬ</button>
  <button class="btn alt" id="bHow">КАК ИГРАТЬ</button>
+ <button class="btn alt" id="bAbout">ОБ ИГРЕ</button>
 </div>
+
+<!-- ═══════════════ КАК ИГРАТЬ ═══════════════ -->
 <div class="screen" id="how">
  <h2>КАК ИГРАТЬ</h2>
  <div class="how">
-  Укладывай фигуры и собирай линии — очков столько, сколько сможешь набрать.<br>
-  <b>10 очков = 1 монета ◈.</b> Монеты сохраняются и тратятся на усиления рядом с полем.<br><br>
-  <b>ПК / планшет (гориз.):</b> ← → движение, ↑ / X поворот, ↓ ускорение, Пробел — сброс, P — пауза, 1–4 — усиления.<br>
-  <b>Телефон / планшет (верт.):</b> экранные кнопки под полем.
+  <div class="how-inner">
+   <p class="intro">
+    Укладывай фигуры и собирай горизонтальные линии.<br>
+    <b>10 очков = 1 монета ◈.</b> Монеты сохраняются между играми
+    и тратятся на бустеры.
+   </p>
+
+   <h3>КНОПКИ УПРАВЛЕНИЯ</h3>
+   <div class="legend">
+    <div class="lg"><span class="ic">◀ ▶</span><span class="txt"><b>Движение</b> фигуры влево / вправо</span></div>
+    <div class="lg"><span class="ic">▼</span><span class="txt"><b>Ускорение</b> — мягкое падение вниз</span></div>
+    <div class="lg"><span class="ic">⟳</span><span class="txt"><b>Поворот</b> фигуры по часовой стрелке</span></div>
+    <div class="lg"><span class="ic">⤓</span><span class="txt"><b>Сброс</b> — фигура мгновенно падает до упора</span></div>
+    <div class="lg"><span class="ic">❚❚</span><span class="txt"><b>Пауза</b></span></div>
+   </div>
+
+   <h3>БУСТЕРЫ ◈</h3>
+   <div class="legend">
+    <div class="lg">
+      <span class="ic c-b">❄</span>
+      <span class="txt"><b>Заморозка</b> · 30 ◈
+        <small>Падение фигур замедляется на 15 секунд</small></span>
+    </div>
+    <div class="lg">
+      <span class="ic c-b">✂</span>
+      <span class="txt"><b>Разрез</b> · 20 ◈
+        <small>Убирает нижний ряд поля, сдвигая всё вниз</small></span>
+    </div>
+    <div class="lg">
+      <span class="ic c-b">∞</span>
+      <span class="txt"><b>Идеал</b> · 10 ◈
+        <small>Следующая фигура — ровный квадрат 2×2</small></span>
+    </div>
+    <div class="lg">
+      <span class="ic c-b">×2</span>
+      <span class="txt"><b>Множитель</b> · 40 ◈
+        <small>Удваивает начисляемые очки на 20 секунд</small></span>
+    </div>
+   </div>
+
+   <h3>КЛАВИАТУРА (ПК / ПЛАНШЕТ)</h3>
+   <div class="legend">
+    <div class="lg"><span class="ic">← →</span><span class="txt">Движение</span></div>
+    <div class="lg"><span class="ic">↑ / X</span><span class="txt">Поворот</span></div>
+    <div class="lg"><span class="ic">↓</span><span class="txt">Ускорение</span></div>
+    <div class="lg"><span class="ic">Space</span><span class="txt">Мгновенный сброс</span></div>
+    <div class="lg"><span class="ic">P / Esc</span><span class="txt">Пауза</span></div>
+    <div class="lg"><span class="ic">1 — 4</span><span class="txt">Быстрый вызов бустера</span></div>
+   </div>
+
+   <h3>ПАНЕЛЬ БУСТЕРОВ · ВКЛ / ВЫКЛ</h3>
+   <div class="legend">
+    <div class="lg">
+      <span class="ic c-b">❚❚</span>
+      <span class="txt">
+        Показать или скрыть панель бустеров можно в любой момент —
+        в меню <b>Пауза</b>, кнопка <b>«БУСТЕРЫ: ВКЛ / ВЫКЛ»</b>.
+        <small>Когда панель скрыта, игровое поле автоматически
+        растягивается на освободившееся место. Выбор запоминается
+        между играми.</small>
+      </span>
+    </div>
+    <div class="lg">
+      <span class="ic">📱 / 🖥</span>
+      <span class="txt">
+        <b>По умолчанию:</b> на телефоне бустеры скрыты — стакан заметно крупнее;
+        на ПК и планшете — показаны.
+      </span>
+    </div>
+    <div class="lg">
+      <span class="ic">1 — 4</span>
+      <span class="txt">
+        Горячие клавиши активируют бустеры, даже если панель скрыта.
+      </span>
+    </div>
+   </div>
+
+   <h3>ОРИЕНТАЦИЯ ЭКРАНА</h3>
+   <div class="legend">
+    <div class="lg">
+      <span class="ic">📱↻</span>
+      <span class="txt">На телефоне игра рассчитана на вертикальную ориентацию.</span>
+    </div>
+   </div>
+  </div>
  </div>
  <button class="btn" id="bBack">НАЗАД</button>
 </div>
+
+<!-- ═══════════════ ОБ ИГРЕ ═══════════════ -->
+<div class="screen" id="about">
+ <div class="inf" style="font-size:clamp(60px,14vmin,120px)">∞</div>
+ <h2>ОБ ИГРЕ</h2>
+ <div class="how">
+  <p class="intro" style="margin-bottom:0">
+   <b>Infinity Tetris</b> — бесконечный тетрис с монетами и бустерами.
+   Никаких уровней и финалов: только ты, стакан и рекорд.
+  </p>
+  <div class="credits">
+   <div class="cr-label">ИДЕЯ И КОД</div>
+   <div class="cr-name">Олег Боженов</div>
+   <div class="cr-alias">OLEG BOZHENOV</div>
+  </div>
+  <div class="cr-ver">v 1.1 · 2025</div>
+ </div>
+ <button class="btn" id="bBack2">НАЗАД</button>
+</div>
+
+<!-- ═══════════════ ПАУЗА ═══════════════ -->
 <div class="screen" id="pause">
  <h2>ПАУЗА</h2>
  <button class="btn" id="bRes">ПРОДОЛЖИТЬ</button>
+ <button class="btn alt" id="bBst">БУСТЕРЫ: ВКЛ</button>
  <button class="btn alt" id="bMenu1">В МЕНЮ</button>
 </div>
+
+<!-- ═══════════════ КОНЕЦ ИГРЫ ═══════════════ -->
 <div class="screen" id="over">
  <div class="inf" style="font-size:90px">∞</div>
  <h2>ПОЛЕ ЗАПОЛНЕНО</h2>
@@ -243,6 +396,27 @@ try{Object.assign(S,JSON.parse(localStorage.getItem('infTetris')||'{}'))}catch(e
 const save=()=>{try{localStorage.setItem('infTetris',JSON.stringify(S))}catch(e){}};
 const c=$('#c'),x=c.getContext('2d'),nc=$('#nc'),nx=nc.getContext('2d');
 let grid,cur,nxt,bag,score=0,lines=0,runCoins,st='menu',acc=0,fz=0,mu=0,cs=24,DPR=1,spr=[],sprN=[],ns=20;
+
+/* ─── Состояние панели бустеров ───
+   Работает на всех устройствах. По умолчанию:
+   на телефоне — скрыто (стакан крупнее), на ПК/планшете — показано. */
+const isMobileMQ=matchMedia('(hover:none) and (pointer:coarse)');
+let bstOn;
+(function initBst(){
+  const saved=localStorage.getItem('infBst');
+  bstOn = saved===null ? !isMobileMQ.matches : saved==='1';
+})();
+function applyBst(){
+  document.body.classList.toggle('bst-off', !bstOn);
+  const b2=$('#bBst');  if(b2){b2.textContent='БУСТЕРЫ: '+(bstOn?'ВКЛ':'ВЫКЛ')}
+}
+function toggleBst(){
+  bstOn=!bstOn;
+  localStorage.setItem('infBst',bstOn?'1':'0');
+  applyBst();
+  fit();
+}
+applyBst();
 
 /* ─── Оптимизация: офскрин-буферы ─── */
 const bgBuf=document.createElement('canvas'),bgx=bgBuf.getContext('2d');
@@ -461,10 +635,9 @@ function draw(){
   const t=on?Math.ceil(p.t==='fz'?fz:mu)+' с':p.c+' ◈';if(p.txt!==t){p.txt=t;p.em.textContent=t}})}
 
 function fit(){
- const mobile=matchMedia('(hover:none) and (pointer:coarse)').matches;
+ const mobile=isMobileMQ.matches;
  DPR=Math.min(devicePixelRatio||1, mobile?1.5:2);
  const g=$('#game'),port=matchMedia('(orientation:portrait)').matches;
- const isTabletLand=matchMedia('(hover:none) and (pointer:coarse) and (min-width:821px) and (orientation:landscape)').matches;
  const isPhoneLand=matchMedia('(hover:none) and (pointer:coarse) and (max-width:820px) and (orientation:landscape)').matches;
  if(isPhoneLand)return;
 
@@ -493,13 +666,13 @@ function fit(){
  ns=Math.max(14,Math.min(30,Math.floor(cs*.9)));const n=ns*4;
  nc.width=n*DPR;nc.height=n*DPR;nc.style.width=n+'px';nc.style.height=n+'px';
  spr=mkSprites(cs);sprN=mkSprites(ns);hud.nx=null;
- /* Пересоздаём буферы под новый масштаб */
  bgBuf.width=W*cs*DPR;bgBuf.height=H*cs*DPR;
  lockBuf.width=W*cs*DPR;lockBuf.height=H*cs*DPR;
  redrawBgBuf();gridDirty=true;
 }
 let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(fit,80)});
 addEventListener('orientationchange',()=>setTimeout(fit,150));
+isMobileMQ.addEventListener && isMobileMQ.addEventListener('change',()=>{applyBst();setTimeout(fit,80)});
 
 /* Динамичный фон */
 const bg=$('#bg'),b=bg.getContext('2d');let bw=0,bh=0,hueC=190,modeT=0,lastTier=0;
@@ -536,10 +709,18 @@ document.querySelectorAll('.cb').forEach(el=>{let t1,t2;const stop=()=>{clearTim
  el.addEventListener('pointerdown',e=>{e.preventDefault();doAct(el.dataset.a);
   if(el.dataset.r)t1=setTimeout(()=>t2=setInterval(()=>doAct(el.dataset.a),el.dataset.a==='down'?60:90),180)});
  ['pointerup','pointerleave','pointercancel'].forEach(v=>el.addEventListener(v,stop))});
-$('#bPlay').onclick=start;$('#bAgain').onclick=start;$('#bHow').onclick=()=>show('how');
-$('#bBack').onclick=()=>show('menu');$('#bRes').onclick=act.pause;
+
+/* Кнопки интерфейса */
+$('#bPlay').onclick=start;$('#bAgain').onclick=start;
+$('#bHow').onclick=()=>show('how');
+$('#bAbout').onclick=()=>show('about');
+$('#bBack').onclick=()=>show('menu');
+$('#bBack2').onclick=()=>show('menu');
+$('#bRes').onclick=act.pause;
+$('#bBst').onclick=()=>toggleBst();
 $('#bMenu1').onclick=$('#bMenu2').onclick=()=>{st='menu';show('menu')};
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&st==='play')act.pause()});
+
 show('menu');fit();requestAnimationFrame(loop);
 </script>
 </body>
